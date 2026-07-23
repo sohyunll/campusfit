@@ -17,9 +17,19 @@ export const api = {
   getBoardPosts: (listingId) =>
     request(`/api/board${listingId ? `?listingId=${listingId}` : ""}`),
   getBoardPost: (id) => request(`/api/board/${id}`),
+  addBoardPost: (post) =>
+    request("/api/board", {
+      method: "POST",
+      body: JSON.stringify(post),
+    }),
   addComment: (id, comment) =>
     request(`/api/board/${id}/comments`, {
       method: "POST",
       body: JSON.stringify(comment),
+    }),
+  closeBoardPost: (id) =>
+    request(`/api/board/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "closed" }),
     }),
 };

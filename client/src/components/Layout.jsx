@@ -1,0 +1,196 @@
+import { useEffect, useState } from "react";
+import { NavLink, Outlet } from "react-router-dom";
+import { regionOptions, gradeOptions } from "../data/mockListings";
+import { api } from "../api/client";
+
+const BOOKMARKS_KEY = "campusfit-bookmarks";
+const MY_POSTS_KEY = "campusfit-my-posts";
+
+function loadMyPosts() {
+  try {
+    const saved = localStorage.getItem(MY_POSTS_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+function loadBookmarks() {
+  try {
+    const saved = localStorage.getItem(BOOKMARKS_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+export default function Layout() {
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [region, setRegion] = useState("all");
+  const [grade, setGrade] = useState("all");
+  const [categories, setCategories] = useState([]);
+  const [listings, setListings] = useState([]);
+  const [boardPosts, setBoardPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [bookmarks, setBookmarks] = useState(loadBookmarks);
+  const [myPosts, setMyPosts] = useState(loadMyPosts);
+
+  useEffect(() => {
+    Promise.all([api.getCategories(), api.getListings(), api.getBoardPosts()])
+      .then(([cats, ls, posts]) => {
+        setCategories(cats);
+        setListings(ls);
+        setBoardPosts(posts);
+      })
+      .catch((err) => setLoadError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const addBoardPost = async (post) => {
+  const created = await api.addBoardPost(post);
+  setBoardPosts((prev) => [...prev, created]);
+  setMyPosts((prev) => [...prev, created.id]);
+  return created;
+};
+
+  const addComment = async (postId, comment) => {
+    const saved = await api.addComment(postId, comment);
+    setBoardPosts((prev) =>
+      prev.map((p) => (p.id === postId ? { ...p, comments: [...p.comments, saved] } : p))
+    );
+  };
+
+const closeBoardPost = async (postId) => {
+  await api.closeBoardPost(postId);
+  setBoardPosts((prev) =>
+    prev.map((p) => (p.id === postId ? { ...p, status: "closed" } : p))
+  );
+};
+  useEffect(() => {
+    localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks));
+  }, [bookmarks]);
+useEffect(() => {
+  localStorage.setItem(MY_POSTS_KEY, JSON.stringify(myPosts));
+}, [myPosts]);
+  const toggleBookmark = (listingId) =>
+    setBookmarks((prev) =>
+      prev.includes(listingId) ? prev.filter((id) => id !== listingId) : [...prev, listingId]
+    );
+
+  const regionLabel = regionOptions.find((o) => o.value === region).label;
+  const gradeLabel = gradeOptions.find((o) => o.value === grade).label;
+
+  const navLinkClass = ({ isActive }) => (isActive ? "active" : undefined);
+
+  return (
+    <>
+      <header className="topnav">
+        <div className="topnav-inner">
+          <NavLink className="logo" to="/" style={{ textDecoration: "none", color: "inherit" }}>
+            캠퍼스핏
+          </NavLink>
+          <nav className="nav-links">
+            <NavLink to="/" end className={navLinkClass}>
+              홈
+            </NavLink>
+            {categories.map((c) => (
+              <NavLink key={c.id} to={`/category/${c.id}`} className={navLinkClass}>
+                {c.label}
+              </NavLink>
+            ))}
+            <NavLink to="/board" className={navLinkClass}>
+              팀원모집
+            </NavLink>
+            <NavLink to="/bookmarks" className={navLinkClass}>
+              북마크
+            </NavLink>
+          </nav>
+          <div className="filter-wrap">
+            <button className="filter-btn" onClick={() => setIsFilterOpen(!isFilterOpen)}>
+              {regionLabel} · {gradeLabel}
+              <span className="chev">▾</span>
+            </button>
+            {isFilterOpen && (
+              <>
+                <button
+                  className="filter-scrim"
+                  onClick={() => setIsFilterOpen(false)}
+                  aria-label="필터 닫기"
+                />
+                <div className="filter-dd">
+                  <p className="filter-label">
+                    지역 <span className="filter-note">— 재학 학교 소재지 기준</span>
+                  </p>
+                  <div className="chip-row scroll">
+                    {regionOptions.map((o) => (
+                      <button
+                        key={o.value}
+                        className={`chip sm ${region === o.value ? "active" : ""}`}
+                        onClick={() => setRegion(o.value)}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="filter-label">
+                    학년 <span className="filter-note">— 학년 조건이 있는 공고에만 적용돼요</span>
+                  </p>
+                  <div className="chip-row">
+                    {gradeOptions.map((o) => (
+                      <button
+                        key={o.value}
+                        className={`chip ${grade === o.value ? "active" : ""}`}
+                        onClick={() => setGrade(o.value)}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                  <button className="filter-apply" onClick={() => setIsFilterOpen(false)}>
+                    확인
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {loading ? (
+        <p className="cat-sub" style={{ textAlign: "center", padding: "96px 24px" }}>
+          불러오는 중...
+        </p>
+      ) : loadError ? (
+        <p className="cat-sub" style={{ textAlign: "center", padding: "96px 24px" }}>
+          서버에 연결할 수 없어요 — server가 켜져 있는지 확인해주세요. ({loadError})
+        </p>
+      ) : (
+        <Outlet
+          context={{
+            regionLabel,
+            gradeLabel,
+            region,
+            grade,
+            openFilter: () => setIsFilterOpen(true),
+            categories,
+            listings,
+            boardPosts,
+            addBoardPost,
+            addComment,
+            bookmarks,
+            toggleBookmark,
+            myPosts,
+            closeBoardPost,
+          }}
+        />
+      )}
+
+      <footer>
+        <div className="inner">
+          <span className="brand">캠퍼스핏</span>
+          <span className="note">대학생을 위한 정보 큐레이션 · 실제 서비스가 아닌 프로토타입입니다.</span>
+        </div>
+      </footer>
+    </>
+  );
+}
