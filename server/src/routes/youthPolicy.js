@@ -44,9 +44,20 @@ function parseDeadline(aplyYmd) {
 
 function guessRegions(text) {
   if (!text) return undefined;
-  const matched = Object.entries(REGION_KEYWORDS)
-    .filter(([, keywords]) => keywords.some((k) => text.includes(k)))
-    .map(([region]) => region);
+  // 짧은 지명 키워드가 다른 지역의 더 긴 지명 안에 우연히 포함되는 경우가 있다
+  // (예: 강원 "양구"가 인천 "계양구" 안에 그대로 들어있음). 다른 매치 키워드의
+  // 부분 문자열인 짧은 매치는 우연한 충돌로 보고 무시한다.
+  const hits = [];
+  for (const [region, keywords] of Object.entries(REGION_KEYWORDS)) {
+    for (const keyword of keywords) {
+      if (text.includes(keyword)) hits.push({ region, keyword });
+    }
+  }
+  const kept = hits.filter(
+    ({ keyword }) =>
+      !hits.some((other) => other.keyword !== keyword && other.keyword.length > keyword.length && other.keyword.includes(keyword))
+  );
+  const matched = [...new Set(kept.map((h) => h.region))];
   return matched.length ? matched : undefined;
 }
 function guessCategory(item) {
