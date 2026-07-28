@@ -8,6 +8,7 @@ import PostDetail from "./pages/PostDetail";
 import WriteBoardPost from "./pages/WriteBoardPost";
 import Bookmarks from "./pages/Bookmarks";
 import MyPosts from "./pages/MyPosts";
+import PickListingForBoard from "./pages/PickListingForBoard";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="category/:categoryId" element={<CategoryList />} />
           <Route path="listing/:listingId" element={<ListingDetail />} />
           <Route path="board" element={<Board />} />
+          <Route path="board/write" element={<PickListingForBoard />} />
           <Route path="board/listing/:listingId" element={<Board />} />
           <Route path="board/listing/:listingId/write" element={<WriteBoardPost />} />
           <Route path="board/post/:postId" element={<PostDetail />} />
