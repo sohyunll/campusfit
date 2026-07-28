@@ -23,27 +23,31 @@ export const api = {getYouthPolicies: () => request("/api/youth-policy"),
       method: "POST",
       body: JSON.stringify(post),
     }),
-  editBoardPost: (id, post) =>
+  editBoardPost: (id, post, ownerToken) =>
     request(`/api/board/${id}`, {
       method: "PATCH",
-      body: JSON.stringify(post),
+      body: JSON.stringify({ ...post, ownerToken }),
     }),
-  deleteBoardPost: (id) => request(`/api/board/${id}`, { method: "DELETE" }),
+  deleteBoardPost: (id, ownerToken) =>
+    request(`/api/board/${id}`, { method: "DELETE", body: JSON.stringify({ ownerToken }) }),
   addComment: (id, comment) =>
     request(`/api/board/${id}/comments`, {
       method: "POST",
       body: JSON.stringify(comment),
     }),
-  editComment: (postId, commentId, text) =>
+  editComment: (postId, commentId, text, ownerToken) =>
     request(`/api/board/${postId}/comments/${commentId}`, {
       method: "PATCH",
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, ownerToken }),
     }),
-  deleteComment: (postId, commentId) =>
-    request(`/api/board/${postId}/comments/${commentId}`, { method: "DELETE" }),
-  closeBoardPost: (id) =>
+  deleteComment: (postId, commentId, ownerToken) =>
+    request(`/api/board/${postId}/comments/${commentId}`, {
+      method: "DELETE",
+      body: JSON.stringify({ ownerToken }),
+    }),
+  closeBoardPost: (id, ownerToken) =>
     request(`/api/board/${id}/status`, {
       method: "PATCH",
-      body: JSON.stringify({ status: "closed" }),
+      body: JSON.stringify({ status: "closed", ownerToken }),
     }),
 };

@@ -6,6 +6,8 @@ import { api } from "../api/client";
 const BOOKMARKS_KEY = "campusfit-bookmarks";
 const MY_POSTS_KEY = "campusfit-my-posts";
 const MY_COMMENTS_KEY = "campusfit-my-comments";
+const MY_POST_TOKENS_KEY = "campusfit-my-post-tokens";
+const MY_COMMENT_TOKENS_KEY = "campusfit-my-comment-tokens";
 
 function loadMyPosts() {
   try {
@@ -21,6 +23,16 @@ function loadMyComments() {
     return saved ? JSON.parse(saved) : [];
   } catch {
     return [];
+  }
+}
+// 글/댓글마다 서버가 발급한 소유자 토큰을 id별로 저장해둔다 — 수정·삭제 요청 때 같이 보내서
+// "이 브라우저가 진짜 작성자인지" 서버가 확인할 수 있게 한다.
+function loadTokenMap(key) {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
   }
 }
 function loadBookmarks() {
@@ -44,6 +56,8 @@ export default function Layout() {
   const [bookmarks, setBookmarks] = useState(loadBookmarks);
   const [myPosts, setMyPosts] = useState(loadMyPosts);
   const [myComments, setMyComments] = useState(loadMyComments);
+  const [myPostTokens, setMyPostTokens] = useState(() => loadTokenMap(MY_POST_TOKENS_KEY));
+  const [myCommentTokens, setMyCommentTokens] = useState(() => loadTokenMap(MY_COMMENT_TOKENS_KEY));
 
   useEffect(() => {
     Promise.all([api.getCategories(), api.getListings(), api.getBoardPosts(), api.getYouthPolicies()])
@@ -57,34 +71,42 @@ export default function Layout() {
   }, []);
   const addBoardPost = async (post) => {
   const created = await api.addBoardPost(post);
-  setBoardPosts((prev) => [...prev, created]);
+  const { ownerToken, ...createdPost } = created;
+  setBoardPosts((prev) => [...prev, createdPost]);
   setMyPosts((prev) => [...prev, created.id]);
-  return created;
+  setMyPostTokens((prev) => ({ ...prev, [created.id]: ownerToken }));
+  return createdPost;
 };
 
   const editBoardPost = async (postId, post) => {
-    const updated = await api.editBoardPost(postId, post);
+    const updated = await api.editBoardPost(postId, post, myPostTokens[postId]);
     setBoardPosts((prev) => prev.map((p) => (p.id === postId ? updated : p)));
     return updated;
   };
 
   const deleteBoardPost = async (postId) => {
-    await api.deleteBoardPost(postId);
+    await api.deleteBoardPost(postId, myPostTokens[postId]);
     setBoardPosts((prev) => prev.filter((p) => p.id !== postId));
     setMyPosts((prev) => prev.filter((id) => id !== postId));
+    setMyPostTokens((prev) => {
+      const { [postId]: _removed, ...rest } = prev;
+      return rest;
+    });
   };
 
   const addComment = async (postId, comment) => {
     const saved = await api.addComment(postId, comment);
+    const { ownerToken, ...savedComment } = saved;
     setBoardPosts((prev) =>
-      prev.map((p) => (p.id === postId ? { ...p, comments: [...p.comments, saved] } : p))
+      prev.map((p) => (p.id === postId ? { ...p, comments: [...p.comments, savedComment] } : p))
     );
     setMyComments((prev) => [...prev, saved.id]);
-    return saved;
+    setMyCommentTokens((prev) => ({ ...prev, [saved.id]: ownerToken }));
+    return savedComment;
   };
 
   const editComment = async (postId, commentId, text) => {
-    await api.editComment(postId, commentId, text);
+    await api.editComment(postId, commentId, text, myCommentTokens[commentId]);
     setBoardPosts((prev) =>
       prev.map((p) =>
         p.id === postId
@@ -95,17 +117,21 @@ export default function Layout() {
   };
 
   const deleteComment = async (postId, commentId) => {
-    await api.deleteComment(postId, commentId);
+    await api.deleteComment(postId, commentId, myCommentTokens[commentId]);
     setBoardPosts((prev) =>
       prev.map((p) =>
         p.id === postId ? { ...p, comments: p.comments.filter((c) => c.id !== commentId) } : p
       )
     );
     setMyComments((prev) => prev.filter((id) => id !== commentId));
+    setMyCommentTokens((prev) => {
+      const { [commentId]: _removed, ...rest } = prev;
+      return rest;
+    });
   };
 
 const closeBoardPost = async (postId) => {
-  await api.closeBoardPost(postId);
+  await api.closeBoardPost(postId, myPostTokens[postId]);
   setBoardPosts((prev) =>
     prev.map((p) => (p.id === postId ? { ...p, status: "closed" } : p))
   );
@@ -119,6 +145,12 @@ useEffect(() => {
 useEffect(() => {
   localStorage.setItem(MY_COMMENTS_KEY, JSON.stringify(myComments));
 }, [myComments]);
+useEffect(() => {
+  localStorage.setItem(MY_POST_TOKENS_KEY, JSON.stringify(myPostTokens));
+}, [myPostTokens]);
+useEffect(() => {
+  localStorage.setItem(MY_COMMENT_TOKENS_KEY, JSON.stringify(myCommentTokens));
+}, [myCommentTokens]);
   const toggleBookmark = (listingId) =>
     setBookmarks((prev) =>
       prev.includes(listingId) ? prev.filter((id) => id !== listingId) : [...prev, listingId]
