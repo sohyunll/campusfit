@@ -59,24 +59,26 @@ export default function Board() {
         </>
       )}
 
-      {posts.map((p) => {
-        const postListing = listings.find((l) => l.id === p.listingId);
-        return (
-          <Link className="post-card" to={`/board/post/${p.id}`} key={p.id}>
-            <div className="top">
-              <span className="title">{p.title}</span>
-              <span className={p.dDay <= 7 ? "pill-alert" : "pill-neutral"}>D-{p.dDay}</span>
-            </div>
-            <p className="meta">
-              {!listing && (
-                <span style={{ color: "var(--bulb-ink)", fontWeight: 600 }}>{postListing.title} · </span>
-              )}
-              {p.meta}
-            </p>
-          </Link>
-        );
-      })}
-      {posts.length === 0 && <p className="cat-sub">아직 등록된 팀원모집 글이 없어요.</p>}
+      <div style={{ marginTop: 28 }}>
+        {posts.map((p) => {
+          const postListing = listings.find((l) => l.id === p.listingId);
+          return (
+            <Link className="post-card" to={`/board/post/${p.id}`} key={p.id}>
+              <div className="top">
+                <span className="title">{p.title}</span>
+                <span className={p.dDay <= 7 ? "pill-alert" : "pill-neutral"}>D-{p.dDay}</span>
+              </div>
+              <p className="meta">
+                {!listing && (
+                  <span style={{ color: "var(--bulb-ink)", fontWeight: 600 }}>{postListing.title} · </span>
+                )}
+                {p.meta}
+              </p>
+            </Link>
+          );
+        })}
+        {posts.length === 0 && <p className="cat-sub">아직 등록된 팀원모집 글이 없어요.</p>}
+      </div>
     </div>
   );
 }
