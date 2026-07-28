@@ -35,15 +35,6 @@ export default function PostDetail() {
       </div>
       <div className="board-head">
         <h1 style={{ fontSize: 30 }}>{post.title}</h1>
-        {isOwner && post.status !== "closed" && (
-          <button
-            className="btn-outline"
-            style={{ display: "inline-block", width: "auto", padding: "9px 18px", fontSize: 13 }}
-            onClick={handleClose}
-          >
-            모집완료
-          </button>
-        )}
       </div>
       <p className="body-txt">{post.body}</p>
       <p className="comment-head">댓글 {post.comments.length}</p>
@@ -58,9 +49,22 @@ export default function PostDetail() {
         value={commentText}
         onChange={(e) => setCommentText(e.target.value)}
       />
-      <button className="btn-accent" style={{ marginTop: 10 }} onClick={handleRegister}>
-        등록
-      </button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
+        {isOwner && post.status !== "closed" ? (
+          <button
+            className="btn-outline"
+            style={{ display: "inline-block", width: "auto", padding: "9px 18px", fontSize: 13 }}
+            onClick={handleClose}
+          >
+            모집완료
+          </button>
+        ) : (
+          <span />
+        )}
+        <button className="btn-accent" onClick={handleRegister}>
+          등록
+        </button>
+      </div>
     </div>
   );
 }
