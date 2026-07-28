@@ -40,9 +40,18 @@ export default function Board() {
         </>
       ) : (
         <>
-          <h1 style={{ fontWeight: 800, fontSize: 32, letterSpacing: "-.02em", margin: "0 0 8px" }}>
-            팀원모집
-          </h1>
+          <div className="board-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+            <h1 style={{ fontWeight: 800, fontSize: 32, letterSpacing: "-.02em", margin: "0 0 8px" }}>
+              팀원모집
+            </h1>
+            <Link
+              className="btn-outline"
+              style={{ display: "inline-block", width: "auto", whiteSpace: "nowrap", flexShrink: 0, padding: "9px 18px", fontSize: 13 }}
+              to="/my-posts"
+            >
+              내가 쓴 글 보기
+            </Link>
+          </div>
           <p className="cat-sub">
             대외활동을 함께할 팀원을 구하고, 지원할 수 있어요. 글쓰기는 각 공고의 팀원모집
             화면에서 할 수 있어요.

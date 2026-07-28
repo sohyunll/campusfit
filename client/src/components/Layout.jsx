@@ -5,10 +5,19 @@ import { api } from "../api/client";
 
 const BOOKMARKS_KEY = "campusfit-bookmarks";
 const MY_POSTS_KEY = "campusfit-my-posts";
+const MY_COMMENTS_KEY = "campusfit-my-comments";
 
 function loadMyPosts() {
   try {
     const saved = localStorage.getItem(MY_POSTS_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+function loadMyComments() {
+  try {
+    const saved = localStorage.getItem(MY_COMMENTS_KEY);
     return saved ? JSON.parse(saved) : [];
   } catch {
     return [];
@@ -34,6 +43,7 @@ export default function Layout() {
   const [loadError, setLoadError] = useState(null);
   const [bookmarks, setBookmarks] = useState(loadBookmarks);
   const [myPosts, setMyPosts] = useState(loadMyPosts);
+  const [myComments, setMyComments] = useState(loadMyComments);
 
   useEffect(() => {
     Promise.all([api.getCategories(), api.getListings(), api.getBoardPosts(), api.getYouthPolicies()])
@@ -52,11 +62,46 @@ export default function Layout() {
   return created;
 };
 
+  const editBoardPost = async (postId, post) => {
+    const updated = await api.editBoardPost(postId, post);
+    setBoardPosts((prev) => prev.map((p) => (p.id === postId ? updated : p)));
+    return updated;
+  };
+
+  const deleteBoardPost = async (postId) => {
+    await api.deleteBoardPost(postId);
+    setBoardPosts((prev) => prev.filter((p) => p.id !== postId));
+    setMyPosts((prev) => prev.filter((id) => id !== postId));
+  };
+
   const addComment = async (postId, comment) => {
     const saved = await api.addComment(postId, comment);
     setBoardPosts((prev) =>
       prev.map((p) => (p.id === postId ? { ...p, comments: [...p.comments, saved] } : p))
     );
+    setMyComments((prev) => [...prev, saved.id]);
+    return saved;
+  };
+
+  const editComment = async (postId, commentId, text) => {
+    await api.editComment(postId, commentId, text);
+    setBoardPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId
+          ? { ...p, comments: p.comments.map((c) => (c.id === commentId ? { ...c, text } : c)) }
+          : p
+      )
+    );
+  };
+
+  const deleteComment = async (postId, commentId) => {
+    await api.deleteComment(postId, commentId);
+    setBoardPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId ? { ...p, comments: p.comments.filter((c) => c.id !== commentId) } : p
+      )
+    );
+    setMyComments((prev) => prev.filter((id) => id !== commentId));
   };
 
 const closeBoardPost = async (postId) => {
@@ -71,6 +116,9 @@ const closeBoardPost = async (postId) => {
 useEffect(() => {
   localStorage.setItem(MY_POSTS_KEY, JSON.stringify(myPosts));
 }, [myPosts]);
+useEffect(() => {
+  localStorage.setItem(MY_COMMENTS_KEY, JSON.stringify(myComments));
+}, [myComments]);
   const toggleBookmark = (listingId) =>
     setBookmarks((prev) =>
       prev.includes(listingId) ? prev.filter((id) => id !== listingId) : [...prev, listingId]
@@ -102,9 +150,6 @@ useEffect(() => {
             </NavLink>
             <NavLink to="/bookmarks" className={navLinkClass}>
               북마크
-            </NavLink>
-            <NavLink to="/my-posts" className={navLinkClass}>
-              내가 쓴 글
             </NavLink>
           </nav>
           <div className="filter-wrap">
@@ -178,10 +223,15 @@ useEffect(() => {
             listings,
             boardPosts,
             addBoardPost,
+            editBoardPost,
+            deleteBoardPost,
             addComment,
+            editComment,
+            deleteComment,
             bookmarks,
             toggleBookmark,
             myPosts,
+            myComments,
             closeBoardPost,
           }}
         />

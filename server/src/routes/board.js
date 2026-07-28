@@ -18,7 +18,7 @@ async function toPost(row) {
   const dDay = listing ? daysUntil(listing.deadline_date) : undefined;
   const { data: comments } = await supabase
     .from("comments")
-    .select("who, text")
+    .select("id, who, text")
     .eq("post_id", row.id)
     .order("id");
   return {
@@ -69,6 +69,46 @@ router.post("/", async (req, res) => {
   const { data: row } = await supabase.from("board_posts").select("*").eq("id", id).single();
   res.status(201).json(await toPost(row));
 });
+router.patch("/:id", async (req, res) => {
+  const { data: post } = await supabase
+    .from("board_posts")
+    .select("id")
+    .eq("id", req.params.id)
+    .single();
+  if (!post) return res.status(404).json({ error: "not found" });
+
+  const { title, meta, body } = req.body;
+  if (!title || !meta || !body) {
+    return res.status(400).json({ error: "title, meta, body는 필수입니다" });
+  }
+  const { error } = await supabase
+    .from("board_posts")
+    .update({ title, meta, body })
+    .eq("id", req.params.id);
+  if (error) return res.status(500).json({ error: error.message });
+
+  const { data: row } = await supabase.from("board_posts").select("*").eq("id", req.params.id).single();
+  res.json(await toPost(row));
+});
+
+router.delete("/:id", async (req, res) => {
+  const { data: post } = await supabase
+    .from("board_posts")
+    .select("id")
+    .eq("id", req.params.id)
+    .single();
+  if (!post) return res.status(404).json({ error: "not found" });
+
+  // comments가 board_posts를 참조하고 있어서 게시글보다 먼저 지워야 한다.
+  const { error: commentError } = await supabase.from("comments").delete().eq("post_id", req.params.id);
+  if (commentError) return res.status(500).json({ error: commentError.message });
+
+  const { error } = await supabase.from("board_posts").delete().eq("id", req.params.id);
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.status(204).end();
+});
+
 router.patch("/:id/status", async (req, res) => {
   const { data: post } = await supabase
     .from("board_posts")
@@ -96,11 +136,46 @@ router.post("/:id/comments", async (req, res) => {
   if (!text) return res.status(400).json({ error: "text is required" });
 
   const comment = { who: who || "익명", text };
-  const { error } = await supabase
+  const { data: inserted, error } = await supabase
     .from("comments")
-    .insert({ post_id: req.params.id, who: comment.who, text: comment.text });
+    .insert({ post_id: req.params.id, who: comment.who, text: comment.text })
+    .select("id, who, text")
+    .single();
   if (error) return res.status(500).json({ error: error.message });
-  res.status(201).json(comment);
+  res.status(201).json(inserted);
+});
+
+router.patch("/:id/comments/:commentId", async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).json({ error: "text is required" });
+
+  const { data: comment } = await supabase
+    .from("comments")
+    .select("id")
+    .eq("id", req.params.commentId)
+    .eq("post_id", req.params.id)
+    .single();
+  if (!comment) return res.status(404).json({ error: "not found" });
+
+  const { error } = await supabase.from("comments").update({ text }).eq("id", req.params.commentId);
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.json({ id: comment.id, text });
+});
+
+router.delete("/:id/comments/:commentId", async (req, res) => {
+  const { data: comment } = await supabase
+    .from("comments")
+    .select("id")
+    .eq("id", req.params.commentId)
+    .eq("post_id", req.params.id)
+    .single();
+  if (!comment) return res.status(404).json({ error: "not found" });
+
+  const { error } = await supabase.from("comments").delete().eq("id", req.params.commentId);
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.status(204).end();
 });
 
 export default router;

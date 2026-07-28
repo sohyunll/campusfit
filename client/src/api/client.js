@@ -6,6 +6,7 @@ async function request(path, options) {
     ...options,
   });
   if (!res.ok) throw new Error(`API 요청 실패: ${path} (${res.status})`);
+  if (res.status === 204) return null;
   return res.json();
 }
 
@@ -22,11 +23,24 @@ export const api = {getYouthPolicies: () => request("/api/youth-policy"),
       method: "POST",
       body: JSON.stringify(post),
     }),
+  editBoardPost: (id, post) =>
+    request(`/api/board/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(post),
+    }),
+  deleteBoardPost: (id) => request(`/api/board/${id}`, { method: "DELETE" }),
   addComment: (id, comment) =>
     request(`/api/board/${id}/comments`, {
       method: "POST",
       body: JSON.stringify(comment),
     }),
+  editComment: (postId, commentId, text) =>
+    request(`/api/board/${postId}/comments/${commentId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ text }),
+    }),
+  deleteComment: (postId, commentId) =>
+    request(`/api/board/${postId}/comments/${commentId}`, { method: "DELETE" }),
   closeBoardPost: (id) =>
     request(`/api/board/${id}/status`, {
       method: "PATCH",

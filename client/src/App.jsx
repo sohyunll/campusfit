@@ -21,6 +21,7 @@ function App() {
           <Route path="board/listing/:listingId" element={<Board />} />
           <Route path="board/listing/:listingId/write" element={<WriteBoardPost />} />
           <Route path="board/post/:postId" element={<PostDetail />} />
+          <Route path="board/post/:postId/edit" element={<WriteBoardPost />} />
           <Route path="bookmarks" element={<Bookmarks />} />
           <Route path="my-posts" element={<MyPosts />} />
         </Route>
