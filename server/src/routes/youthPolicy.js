@@ -91,7 +91,51 @@ const ACTIVITY_INTEREST_KEYWORDS = {
   "이공계/기술": ["이공계", "과학", "공학", "기술"],
 };
 
-function guessInterest(categoryId, text) {
+// item.mclsfNm(정부가 직접 매긴 중분류, 예: "청년참여"·"취업"·"주택 및 거주지")을 관심분야로
+// 우선 매핑한다. 제목·설명 텍스트 키워드 매칭보다 훨씬 정확하다 — 예를 들어 "충남형 청년
+// 한달살이"는 설명에 "정책"이란 말이 아예 없는데도 키워드 매칭만으로는 "정책참여"로 잘못
+// 잡혔었다. internship은 mclsfNm이 "취업/창업" 같은 지원 단계만 구분하고 개발·마케팅
+// 같은 직무 분야 정보가 없어서 이 매핑을 안 쓰고 기존 키워드 매칭만 쓴다.
+const MCLSF_TO_LOCAL_INTEREST = {
+  취업: "취업",
+  재직자: "취업",
+  창업: "창업",
+  "주택 및 거주지": "주거",
+  "전월세 및 주거급여 지원": "주거",
+  기숙사: "주거",
+  "문화활동 및 생활지원": "문화",
+  문화활동: "문화",
+  예술인지원: "문화",
+  건강: "복지",
+  권익보호: "복지",
+  "취약계층 및 금융지원": "금융",
+  미래역량강화: "교육",
+  교육비지원: "교육",
+  "온·오프라인교육": "교육",
+  온라인교육: "교육",
+};
+const MCLSF_TO_ACTIVITY_INTEREST = {
+  청년참여: "정책참여",
+  정책인프라구축: "정책참여",
+  청년국제교류: "국제교류",
+  권익보호: "정책참여",
+};
+
+function guessInterestFromMclsf(categoryId, mclsfNm) {
+  if (!mclsfNm) return undefined;
+  const map = categoryId === "activity" ? MCLSF_TO_ACTIVITY_INTEREST : categoryId === "local" ? MCLSF_TO_LOCAL_INTEREST : null;
+  if (!map) return undefined;
+  for (const part of mclsfNm.split(",")) {
+    const interest = map[part.trim()];
+    if (interest) return interest;
+  }
+  return undefined;
+}
+
+function guessInterest(categoryId, mclsfNm, text) {
+  const fromMclsf = guessInterestFromMclsf(categoryId, mclsfNm);
+  if (fromMclsf) return fromMclsf;
+
   const table =
     categoryId === "internship"
       ? INTERNSHIP_INTEREST_KEYWORDS
@@ -113,7 +157,7 @@ function toYouthListing(item) {
     categoryId,
     title: item.plcyNm,
     desc: item.plcyExplnCn,
-    interest: guessInterest(categoryId, text),
+    interest: guessInterest(categoryId, item.mclsfNm, text),
     sourceUrl: item.aplyUrlAddr || item.refUrlAddr1 || item.refUrlAddr2 || undefined,
     eligibleRegions: guessRegions(item.zipCd),
     dDay: deadlineDate ? daysUntil(deadlineDate) : 999, // 상시/미정은 마감 없는 것으로 취급
