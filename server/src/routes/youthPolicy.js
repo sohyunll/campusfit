@@ -86,15 +86,16 @@ const ACTIVITY_INTEREST_KEYWORDS = {
   봉사: ["봉사", "나눔", "돌봄"],
   "홍보/서포터즈": ["서포터즈", "홍보", "기자단", "리포터", "브랜드참여단"],
   국제교류: ["국제", "해외", "글로벌", "교류"],
-  위원회: ["위원회", "협의체", "네트워크", "조정위"],
+  정책: ["위원회", "협의체", "네트워크", "조정위"],
   정책참여: ["정책", "참여단", "특사단"],
   "탐방/체험": ["탐방", "체험", "포럼"],
   "이공계/기술": ["이공계", "과학", "공학", "기술"],
 };
 // "정책참여" 태그가 붙는 mclsfNm(청년참여·정책인프라구축) 안에는 "청년정책조정위원회
 // 운영"처럼 진짜 위원회·협의체 성격인 것도 많이 섞여 있다(84건 중 19건). 제목에 이
-// 키워드가 있으면 "정책참여" 대신 "위원회"로 더 구체적으로 분류한다.
+// 키워드가 있으면 "정책참여" 대신 "정책"으로 더 구체적으로 분류한다.
 const COMMITTEE_TITLE_KEYWORDS = ["위원회", "협의체", "네트워크", "조정위"];
+const POLICY_PARTICIPATION_MCLSF = new Set(["청년참여", "정책인프라구축"]);
 
 // item.mclsfNm(정부가 직접 매긴 중분류, 예: "청년참여"·"취업"·"주택 및 거주지")을 관심분야로
 // 우선 매핑한다. 제목·설명 텍스트 키워드 매칭보다 훨씬 정확하다 — 예를 들어 "충남형 청년
@@ -118,6 +119,8 @@ const MCLSF_TO_LOCAL_INTEREST = {
   교육비지원: "교육",
   "온·오프라인교육": "교육",
   온라인교육: "교육",
+  청년참여: "정책",
+  정책인프라구축: "정책",
 };
 const MCLSF_TO_ACTIVITY_INTEREST = {
   청년참여: "정책참여",
@@ -131,9 +134,10 @@ function guessInterestFromMclsf(categoryId, mclsfNm, title) {
   const map = categoryId === "activity" ? MCLSF_TO_ACTIVITY_INTEREST : categoryId === "local" ? MCLSF_TO_LOCAL_INTEREST : null;
   if (!map) return undefined;
   for (const part of mclsfNm.split(",")) {
-    const interest = map[part.trim()];
+    const trimmed = part.trim();
+    const interest = map[trimmed];
     if (!interest) continue;
-    if (interest === "정책참여" && COMMITTEE_TITLE_KEYWORDS.some((k) => title.includes(k))) return "위원회";
+    if (POLICY_PARTICIPATION_MCLSF.has(trimmed) && COMMITTEE_TITLE_KEYWORDS.some((k) => title.includes(k))) return "정책";
     return interest;
   }
   return undefined;

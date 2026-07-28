@@ -144,7 +144,7 @@ const INTEREST_ICON = {
   봉사: "heart",
   "홍보/서포터즈": "megaphone",
   국제교류: "globe",
-  위원회: "vote",
+  정책: "vote",
   정책참여: "columns",
   "탐방/체험": "compass",
   "엔지니어링/제조": "factory",
