@@ -1,24 +1,29 @@
 import { Router } from "express";
 
 const router = Router();
-const REGION_KEYWORDS = {
-  seoul: ["서울"],
-  busan: ["부산"],
-  daegu: ["대구"],
-  incheon: ["인천", "영종구", "부평", "검단", "계양구", "연수구", "미추홀구"],
-  gwangju: ["광주", "광산구", "서구", "남구", "동구", "북구"],
-  daejeon: ["대전"],
-  ulsan: ["울산"],
-  sejong: ["세종"],
-  gyeonggi: ["경기", "수원", "성남", "고양", "용인", "부천", "안산", "안양", "남양주", "화성", "평택", "의정부", "시흥", "파주", "김포", "광명", "군포", "이천", "양주", "오산", "구리", "안성", "포천", "의왕", "하남", "여주", "동두천", "과천", "양평", "가평", "연천"],
-  gangwon: ["강원", "춘천", "원주", "강릉", "동해", "태백", "속초", "삼척", "홍천", "횡성", "영월", "평창", "정선", "철원", "화천", "양구", "인제", "고성", "양양"],
-  chungbuk: ["충북", "충청북도", "청주", "충주", "제천", "보은", "옥천", "영동", "증평", "진천", "괴산", "음성", "단양"],
-  chungnam: ["충남", "충청남도", "천안", "공주", "보령", "아산", "서산", "논산", "계룡", "당진", "금산", "부여", "서천", "청양", "홍성", "예산", "태안"],
-  jeonbuk: ["전북", "전라북도", "전주", "군산", "익산", "정읍", "남원", "김제", "완주", "진안", "무주", "장수", "임실", "순창", "고창", "부안"],
-  jeonnam: ["전남", "전라남도", "목포", "여수", "순천", "나주", "광양", "담양", "곡성", "구례", "고흥", "보성", "화순", "장흥", "강진", "해남", "영암", "무안", "함평", "영광", "장성", "완도", "진도", "신안"],
-  gyeongbuk: ["경북", "경상북도", "포항", "경주", "김천", "안동", "구미", "영주", "영천", "상주", "문경", "경산", "군위", "의성", "청송", "영양", "영덕", "청도", "고령", "성주", "칠곡", "예천", "봉화", "울진", "울릉"],
-  gyeongnam: ["경남", "경상남도", "창원", "진주", "통영", "사천", "김해", "밀양", "거제", "양산", "의령", "함안", "창녕", "남해", "하동", "산청", "함양", "거창", "합천"],
-  jeju: ["제주"],
+// item.zipCd(콤마로 나열된 5자리 행정구역코드)의 앞 2자리는 시/도를 가리킨다.
+// 전국 2,694건 데이터로 실제 매핑을 확인해서 만든 표 — 광주/전남은 "전남광주통합특별시"로
+// 행정구역이 합쳐져서 코드(12)를 공유한다. 강원(51)·전북(52)은 특별자치도 전환 이후의
+// 신규 코드다. 예전엔 제목·설명 텍스트에서 지명을 글자 매칭으로 찾았는데, "계양구" 안에
+// "양구"가 우연히 들어있거나 "민영주택" 안에 "영주"가 우연히 들어있는 식으로 오탐이 잦아서
+// 이 구조화된 코드 기반으로 바꿨다.
+const ZIP_PREFIX_TO_REGIONS = {
+  11: ["seoul"],
+  26: ["busan"],
+  27: ["daegu"],
+  28: ["incheon"],
+  12: ["gwangju", "jeonnam"],
+  30: ["daejeon"],
+  31: ["ulsan"],
+  36: ["sejong"],
+  41: ["gyeonggi"],
+  51: ["gangwon"],
+  43: ["chungbuk"],
+  44: ["chungnam"],
+  52: ["jeonbuk"],
+  47: ["gyeongbuk"],
+  48: ["gyeongnam"],
+  50: ["jeju"],
 };
 const EXCLUDE_KEYWORDS = ["신혼부부"];
 
@@ -42,23 +47,14 @@ function parseDeadline(aplyYmd) {
   return `${end.slice(0, 4)}-${end.slice(4, 6)}-${end.slice(6, 8)}`;
 }
 
-function guessRegions(text) {
-  if (!text) return undefined;
-  // 짧은 지명 키워드가 다른 지역의 더 긴 지명 안에 우연히 포함되는 경우가 있다
-  // (예: 강원 "양구"가 인천 "계양구" 안에 그대로 들어있음). 다른 매치 키워드의
-  // 부분 문자열인 짧은 매치는 우연한 충돌로 보고 무시한다.
-  const hits = [];
-  for (const [region, keywords] of Object.entries(REGION_KEYWORDS)) {
-    for (const keyword of keywords) {
-      if (text.includes(keyword)) hits.push({ region, keyword });
-    }
+function guessRegions(zipCd) {
+  if (!zipCd) return undefined;
+  const regions = new Set();
+  for (const code of zipCd.split(",")) {
+    const prefix = code.trim().slice(0, 2);
+    for (const region of ZIP_PREFIX_TO_REGIONS[prefix] || []) regions.add(region);
   }
-  const kept = hits.filter(
-    ({ keyword }) =>
-      !hits.some((other) => other.keyword !== keyword && other.keyword.length > keyword.length && other.keyword.includes(keyword))
-  );
-  const matched = [...new Set(kept.map((h) => h.region))];
-  return matched.length ? matched : undefined;
+  return regions.size ? [...regions] : undefined;
 }
 function guessCategory(item) {
   const text = `${item.plcyNm} ${item.plcyExplnCn}`;
@@ -119,7 +115,7 @@ function toYouthListing(item) {
     desc: item.plcyExplnCn,
     interest: guessInterest(categoryId, text),
     sourceUrl: item.aplyUrlAddr || item.refUrlAddr1 || item.refUrlAddr2 || undefined,
-    eligibleRegions: guessRegions(text),
+    eligibleRegions: guessRegions(item.zipCd),
     dDay: deadlineDate ? daysUntil(deadlineDate) : 999, // 상시/미정은 마감 없는 것으로 취급
   };
 }
