@@ -88,6 +88,11 @@ export default function Board() {
         })}
         {posts.length === 0 && <p className="cat-sub">아직 등록된 팀원모집 글이 없어요.</p>}
       </div>
+      {listing && (
+        <Link className="btn-outline" style={{ display: "block", marginTop: 24 }} to="/board">
+          목록
+        </Link>
+      )}
     </div>
   );
 }
