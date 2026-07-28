@@ -152,11 +152,7 @@ export default function PostDetail() {
       <button className="btn-accent" style={{ marginTop: 10 }} onClick={handleRegister}>
         등록
       </button>
-      <Link
-        className="btn-outline"
-        style={{ display: "block", marginTop: 10 }}
-        to={`/board/listing/${listing.id}`}
-      >
+      <Link className="btn-outline" style={{ display: "block", marginTop: 10 }} to="/board">
         목록
       </Link>
     </div>
