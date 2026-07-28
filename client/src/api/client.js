@@ -9,7 +9,7 @@ async function request(path, options) {
   return res.json();
 }
 
-export const api = {
+export const api = {getYouthPolicies: () => request("/api/youth-policy"),
   health: () => request("/api/health"),
   getCategories: () => request("/api/listings/categories"),
   getListings: (categoryId) =>

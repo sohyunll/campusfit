@@ -36,16 +36,15 @@ export default function Layout() {
   const [myPosts, setMyPosts] = useState(loadMyPosts);
 
   useEffect(() => {
-    Promise.all([api.getCategories(), api.getListings(), api.getBoardPosts()])
-      .then(([cats, ls, posts]) => {
-        setCategories(cats);
-        setListings(ls);
-        setBoardPosts(posts);
-      })
+    Promise.all([api.getCategories(), api.getListings(), api.getBoardPosts(), api.getYouthPolicies()])
+  .then(([cats, ls, posts, youthPolicies]) => {
+    setCategories(cats);
+    setListings([...ls, ...youthPolicies]);
+    setBoardPosts(posts);
+  })
       .catch((err) => setLoadError(err.message))
       .finally(() => setLoading(false));
   }, []);
-
   const addBoardPost = async (post) => {
   const created = await api.addBoardPost(post);
   setBoardPosts((prev) => [...prev, created]);
