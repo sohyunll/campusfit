@@ -57,13 +57,9 @@ router.post("/", async (req, res) => {
   if (!listingId || !title || !meta || !body) {
     return res.status(400).json({ error: "listingId, title, meta, body는 필수입니다" });
   }
-  const { data: listing } = await supabase
-    .from("listings")
-    .select("id")
-    .eq("id", listingId)
-    .single();
-  if (!listing) return res.status(400).json({ error: "존재하지 않는 listingId입니다" });
-
+  // listingId는 Supabase listings(장학금·지자체혜택 등)뿐 아니라 DB에 저장하지 않고
+  // 실시간으로 불러오는 온통청년(youth-*) 리스팅도 가리킬 수 있어서, 여기서 존재 여부를
+  // 확인하지 않는다 (board_posts.listing_id의 외래키 제약도 같은 이유로 제거했다).
   const id = `p-${Date.now()}`;
   const { error } = await supabase
     .from("board_posts")

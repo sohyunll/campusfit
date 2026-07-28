@@ -27,9 +27,11 @@ create table listings (
   source_url text
 );
 
+-- listing_id는 listings(id)를 가리킬 수도, DB에 저장하지 않고 실시간으로 불러오는
+-- 온통청년(youth-*) 리스팅을 가리킬 수도 있어서 외래키 제약을 걸지 않는다.
 create table board_posts (
   id text primary key,
-  listing_id text not null references listings(id),
+  listing_id text not null,
   title text not null,
   meta text not null,
   body text not null,

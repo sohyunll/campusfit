@@ -26,6 +26,22 @@ function isExcluded(text) {
   return EXCLUDE_KEYWORDS.some((k) => text.includes(k));
 }
 
+function daysUntil(dateStr) {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const deadline = new Date(`${dateStr}T00:00:00Z`);
+  return Math.round((deadline - today) / 86400000);
+}
+
+// aplyYmd는 "20260728 ~ 20260930" 형식. 상시/미정 정책은 빈 문자열이라 파싱 안 되면
+// undefined를 반환 — 이 경우 실제 마감이 없는 것으로 보고 큰 값(999)을 그대로 쓴다.
+function parseDeadline(aplyYmd) {
+  const match = aplyYmd && aplyYmd.match(/(\d{8})\s*~\s*(\d{8})/);
+  if (!match) return undefined;
+  const end = match[2];
+  return `${end.slice(0, 4)}-${end.slice(4, 6)}-${end.slice(6, 8)}`;
+}
+
 function guessRegions(text) {
   if (!text) return undefined;
   const matched = Object.entries(REGION_KEYWORDS)
@@ -84,6 +100,7 @@ function guessInterest(categoryId, text) {
 function toYouthListing(item) {
   const categoryId = guessCategory(item);
   const text = `${item.plcyNm} ${item.plcyExplnCn} ${item.lclsfNm} ${item.sprvsnInstCdNm || ""} ${item.rgtrInstCdNm || ""} ${item.operInstCdNm || ""}`;
+  const deadlineDate = parseDeadline(item.aplyYmd);
   return {
     id: `youth-${item.plcyNo}`,
     categoryId,
@@ -92,7 +109,7 @@ function toYouthListing(item) {
     interest: guessInterest(categoryId, text),
     sourceUrl: item.aplyUrlAddr || item.refUrlAddr1 || item.refUrlAddr2 || undefined,
     eligibleRegions: guessRegions(text),
-    dDay: 999, // TODO: 나중에 실제 날짜로 교체, 일단 임시값
+    dDay: deadlineDate ? daysUntil(deadlineDate) : 999, // 상시/미정은 마감 없는 것으로 취급
   };
 }
 router.get("/", async (req, res) => {
@@ -123,7 +140,8 @@ router.get("/", async (req, res) => {
 
   const listings = uniqueItems
     .filter((item) => !isExcluded(`${item.plcyNm} ${item.plcyExplnCn}`))
-    .map(toYouthListing);
+    .map(toYouthListing)
+    .filter((listing) => listing.dDay >= 0); // 마감일이 지난 건 목록에서 뺀다
   res.json(listings);
 });
 export default router;
