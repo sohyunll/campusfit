@@ -36,7 +36,11 @@ export default function PostDetail() {
       <div className="board-head">
         <h1 style={{ fontSize: 30 }}>{post.title}</h1>
         {isOwner && post.status !== "closed" && (
-          <button className="btn-primary" style={{ padding: "9px 18px", fontSize: 13 }} onClick={handleClose}>
+          <button
+            className="btn-outline"
+            style={{ display: "inline-block", width: "auto", padding: "9px 18px", fontSize: 13 }}
+            onClick={handleClose}
+          >
             모집완료
           </button>
         )}

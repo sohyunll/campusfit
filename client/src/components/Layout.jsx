@@ -103,6 +103,9 @@ useEffect(() => {
             <NavLink to="/bookmarks" className={navLinkClass}>
               북마크
             </NavLink>
+            <NavLink to="/my-posts" className={navLinkClass}>
+              내가 쓴 글
+            </NavLink>
           </nav>
           <div className="filter-wrap">
             <button className="filter-btn" onClick={() => setIsFilterOpen(!isFilterOpen)}>
