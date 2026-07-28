@@ -36,7 +36,7 @@ export default function Board() {
               글쓰기
             </Link>
           </div>
-          <p className="cat-sub">{posts.length}건 — 이 공고에 지원하려는 학생만 모여요</p>
+          <p className="cat-sub" style={{ marginTop: 20 }}>{posts.length}건 — 이 공고에 지원하려는 학생만 모여요</p>
         </>
       ) : (
         <>
