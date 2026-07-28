@@ -3,10 +3,12 @@
   "title": "캠퍼스핏 - 대학생 조건 기반 정보 큐레이션",
   "summary": "지역, 학년 조건에 맞는 장학금·지자체혜택·대외활동·인턴십만 걸러 보여주고, 팀 단위 공고는 인앱 팀원모집 게시판에서 댓글로 바로 지원까지 이어지는 서비스입니다.",
   "githubUser": "sohyunll(권소현)",
-  "thumbnail": "thumbnail.webp",
+  "thumbnail": "screenshots/home.png",
   "screenshots": [
-    "screenshots/home.webp",
-    "screenshots/board.webp"
+    "screenshots/home.png",
+    "screenshots/category.png",
+    "screenshots/board-write.png",
+    "screenshots/bookmarks.png"
   ],
   "problem": "장학금·지자체혜택·대외활동·인턴십 정보가 여러 곳에 흩어져 있고, 학과 네트워크가 없으면 놓치기 쉽습니다. 지역, 학년 조건이 안 맞는 공고까지 일일이 확인해야 해서 비효율적이고, 팀 단위로 지원하는 공고는 팀원을 구하는 경로가 따로 없어 실제 지원까지 이어지기 어렵습니다.",
   "targetUsers": [
