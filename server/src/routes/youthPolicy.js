@@ -97,9 +97,9 @@ function toYouthListing(item) {
 }
 router.get("/", async (req, res) => {
   const apiKey = process.env.YOUTH_POLICY_API_KEY;
-  const generalUrl = `https://www.youthcenter.go.kr/go/ythip/getPlcy?apiKeyNm=${apiKey}&pageSize=150&rtnType=json`;
-  const internshipUrl = `https://www.youthcenter.go.kr/go/ythip/getPlcy?apiKeyNm=${apiKey}&pageSize=100&rtnType=json&plcyKywdNm=인턴`;
-  const activityUrl = `https://www.youthcenter.go.kr/go/ythip/getPlcy?apiKeyNm=${apiKey}&pageSize=100&rtnType=json&lclsfNm=참여권리`;
+  const generalUrl = `https://www.youthcenter.go.kr/go/ythip/getPlcy?apiKeyNm=${apiKey}&pageSize=3000&rtnType=json`;
+  const internshipUrl = `https://www.youthcenter.go.kr/go/ythip/getPlcy?apiKeyNm=${apiKey}&pageSize=3000&rtnType=json&plcyKywdNm=인턴`;
+  const activityUrl = `https://www.youthcenter.go.kr/go/ythip/getPlcy?apiKeyNm=${apiKey}&pageSize=3000&rtnType=json&lclsfNm=참여권리`;
 
   const [generalRes, internshipRes, activityRes] = await Promise.all([
     fetch(generalUrl),
