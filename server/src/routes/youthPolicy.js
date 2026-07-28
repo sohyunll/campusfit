@@ -112,30 +112,41 @@ function toYouthListing(item) {
     dDay: deadlineDate ? daysUntil(deadlineDate) : 999, // 상시/미정은 마감 없는 것으로 취급
   };
 }
+// 온통청년 서버가 가끔(특히 pageSize=3000 같은 무거운 요청 여러 개를 동시에 보내면)
+// JSON 대신 HTML 에러 페이지를 돌려줄 때가 있다. 그럴 때 하나가 죽어서 전체 라우트가
+// 500나는 걸 막기 위해, 실패하면 빈 배열로 취급하고 서버 로그에만 남긴다.
+async function fetchYouthPolicyList(url, label) {
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    return data?.result?.youthPolicyList || [];
+  } catch (err) {
+    console.error(`온통청년 API 실패 (${label}):`, err.message);
+    return [];
+  }
+}
+
 router.get("/", async (req, res) => {
   const apiKey = process.env.YOUTH_POLICY_API_KEY;
   const generalUrl = `https://www.youthcenter.go.kr/go/ythip/getPlcy?apiKeyNm=${apiKey}&pageSize=3000&rtnType=json`;
   const internshipUrl = `https://www.youthcenter.go.kr/go/ythip/getPlcy?apiKeyNm=${apiKey}&pageSize=3000&rtnType=json&plcyKywdNm=인턴`;
   const activityUrl = `https://www.youthcenter.go.kr/go/ythip/getPlcy?apiKeyNm=${apiKey}&pageSize=3000&rtnType=json&lclsfNm=참여권리`;
 
-  const [generalRes, internshipRes, activityRes] = await Promise.all([
-    fetch(generalUrl),
-    fetch(internshipUrl),
-    fetch(activityUrl),
+  const [generalList, internshipList, activityList] = await Promise.all([
+    fetchYouthPolicyList(generalUrl, "전체"),
+    fetchYouthPolicyList(internshipUrl, "인턴"),
+    fetchYouthPolicyList(activityUrl, "참여권리"),
   ]);
-  const generalData = await generalRes.json();
-  const internshipData = await internshipRes.json();
-  const activityData = await activityRes.json();
 
-  const internshipItems = internshipData.result.youthPolicyList.map((item) => ({
+  const internshipItems = internshipList.map((item) => ({
     ...item,
     __forceInternship: true,
   }));
-  const activityItems = activityData.result.youthPolicyList.map((item) => ({
+  const activityItems = activityList.map((item) => ({
     ...item,
     __forceActivity: true,
   }));
-  const allItems = [...generalData.result.youthPolicyList, ...internshipItems, ...activityItems];
+  const allItems = [...generalList, ...internshipItems, ...activityItems];
   const uniqueItems = [...new Map(allItems.map((item) => [item.plcyNm, item])).values()];
 
   const listings = uniqueItems
