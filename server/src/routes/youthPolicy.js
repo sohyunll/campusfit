@@ -216,7 +216,12 @@ router.get("/", async (req, res) => {
     __forceActivity: true,
   }));
   const allItems = [...generalList, ...internshipItems, ...activityItems];
-  const uniqueItems = [...new Map(allItems.map((item) => [item.plcyNm, item])).values()];
+  // plcyNm(제목)으로 중복 제거하면, 서로 다른 정책(plcyNo)이 우연히 제목이 같을 때
+  // 하나가 사라지는 문제가 있었다 (2026-07-29 발견 — "서산시 청년의 날 행사 추진"이라는
+  // 이름의 서산시 전용 정책과 전국 대상 정책이 따로 있었는데, 제목 기준 중복 제거 때문에
+  // 전국 버전만 남아서 지역 필터링이 무의미해졌었음). 정책 고유번호(plcyNo)로 중복을 걸러야
+  // 진짜 같은 정책만 합쳐진다.
+  const uniqueItems = [...new Map(allItems.map((item) => [item.plcyNo, item])).values()];
 
   const listings = uniqueItems
     .filter((item) => !isExcluded(`${item.plcyNm} ${item.plcyExplnCn}`))
