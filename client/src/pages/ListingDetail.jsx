@@ -60,7 +60,7 @@ export default function ListingDetail() {
         </div>
         <div className="info-row">
           <span className="k">신청기간</span>
-          <span className="v">{isRolling(listing.dDay) ? "상시모집" : `마감 D-${listing.dDay}`}</span>
+          <span className="v">{isRolling(listing.dDay) ? "마감일 미정" : `마감 D-${listing.dDay}`}</span>
         </div>
         <div className="info-row">
           <span className="k">신청방법</span>
