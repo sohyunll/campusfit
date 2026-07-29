@@ -26,6 +26,12 @@ const ZIP_PREFIX_TO_REGIONS = {
   50: ["jeju"],
 };
 const EXCLUDE_KEYWORDS = ["신혼부부"];
+// 전국 대상 정책은 zipCd에 "특정 지역 없음"으로 표시되는 게 아니라, 전국 모든 시/군/구
+// 코드를 다 나열하는 방식이라 guessRegions가 그대로 받으면 17개 광역 지역이 전부 담긴
+// 배열이 나온다 — 그러면 어떤 지역으로 필터링해도 "지역 추천"이 붙어버린다 (2026-07-29
+// 확인, K-패스·청년주택드림청약통장 실제 데이터로 검증). 매칭된 지역이 전체 지역 수와
+// 같으면 전국 대상으로 보고 지역 제한 없음(undefined)으로 처리한다.
+const ALL_REGIONS = new Set(Object.values(ZIP_PREFIX_TO_REGIONS).flat());
 
 function isExcluded(text) {
   return EXCLUDE_KEYWORDS.some((k) => text.includes(k));
@@ -54,7 +60,8 @@ function guessRegions(zipCd) {
     const prefix = code.trim().slice(0, 2);
     for (const region of ZIP_PREFIX_TO_REGIONS[prefix] || []) regions.add(region);
   }
-  return regions.size ? [...regions] : undefined;
+  if (regions.size === 0 || regions.size === ALL_REGIONS.size) return undefined;
+  return [...regions];
 }
 function guessCategory(item) {
   const text = `${item.plcyNm} ${item.plcyExplnCn}`;
