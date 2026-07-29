@@ -23,7 +23,7 @@
 /* 다크모드: prefers-color-scheme 및 수동 토글(data-theme) 둘 다 지원 */
 @media (prefers-color-scheme: dark){
   :root{
-    --paper: oklch(0.19 0.006 260); --surface: oklch(0.26 0.008 260); --card: oklch(0.28 0.05 255);
+    --paper: oklch(0.2 0.035 255); --surface: oklch(0.26 0.008 260); --card: oklch(0.28 0.05 255);
     --ink: oklch(0.94 0.005 260); --ink-soft: oklch(0.78 0.01 260); --ink-faint: oklch(0.62 0.01 260);
     --line: oklch(0.32 0.008 260); --line-strong: oklch(0.38 0.008 260);
     --bulb: oklch(0.75 0.13 255); --bulb-soft: oklch(0.28 0.05 255); --bulb-ink: oklch(0.82 0.1 255);
@@ -31,7 +31,7 @@
   }
 }
 :root[data-theme="dark"]{
-  --paper: oklch(0.19 0.006 260); --surface: oklch(0.26 0.008 260); --card: oklch(0.28 0.05 255);
+  --paper: oklch(0.2 0.035 255); --surface: oklch(0.26 0.008 260); --card: oklch(0.28 0.05 255);
   --ink: oklch(0.94 0.005 260); --ink-soft: oklch(0.78 0.01 260); --ink-faint: oklch(0.62 0.01 260);
   --line: oklch(0.32 0.008 260); --line-strong: oklch(0.38 0.008 260);
   --bulb: oklch(0.75 0.13 255); --bulb-soft: oklch(0.28 0.05 255); --bulb-ink: oklch(0.82 0.1 255);
