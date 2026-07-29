@@ -25,7 +25,7 @@ export default function PostDetail() {
 
   const handleRegister = () => {
     if (!commentText.trim()) return;
-    addComment(post.id, { who: "나", text: commentText.trim() });
+    addComment(post.id, { text: commentText.trim() });
     setCommentText("");
   };
 
@@ -104,9 +104,9 @@ export default function PostDetail() {
       </div>
       <p className="body-txt">{post.body}</p>
       <p className="comment-head">댓글 {post.comments.length}</p>
-      {post.comments.map((c) => (
+      {post.comments.map((c, i) => (
         <div className="comment" key={c.id}>
-          <div className="who">{c.who}</div>
+          <div className="who">익명{i + 1}</div>
           {editingCommentId === c.id ? (
             <>
               <textarea
