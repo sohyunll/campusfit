@@ -102,13 +102,17 @@ const totalCount = listings.filter((l) => l.categoryId === categoryId).length;
         )}
 
         <div className="divider-list">
-          {categoryListings.map((l) => (
+          {categoryListings.map((l) => {
+            const teamBoardCount = boardPosts.filter(
+              (p) => p.listingId === l.id && p.status !== "closed"
+            ).length;
+            return (
             <Link className="row" to={`/listing/${l.id}`} key={l.id}>
               <div className="main">
                 <div className="top-line">
                   <span className="title">{l.title}</span>
-                  {l.teamBoardCount > 0 && (
-                    <span className="pill-team">팀원모집 {l.teamBoardCount}건</span>
+                  {teamBoardCount > 0 && (
+                    <span className="pill-team">팀원모집 {teamBoardCount}건</span>
                   )}
                   {showGradeGuide && l.eligibleGrades?.includes(grade) && (
                     <span className="pill-grade">{gradeLabel} 추천</span>
@@ -129,7 +133,8 @@ const totalCount = listings.filter((l) => l.categoryId === categoryId).length;
                 }}
               />
             </Link>
-          ))}
+            );
+          })}
           {categoryListings.length === 0 && (
             <p className="cat-sub">선택한 조건에 맞는 공고가 없어요.</p>
           )}
