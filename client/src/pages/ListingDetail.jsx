@@ -1,6 +1,7 @@
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import CardNewsThumb from "../components/CardNewsThumb";
 import BookmarkStar from "../components/BookmarkStar";
+import { formatDDay, isRolling } from "../utils/dday";
 
 export default function ListingDetail() {
   const { listingId } = useParams();
@@ -14,7 +15,7 @@ export default function ListingDetail() {
         <Link to="/">홈</Link> / <Link to={`/category/${category.id}`}>{category.label}</Link>
       </p>
       <div className="detail-meta">
-        <span className={listing.dDay <= 7 ? "pill-alert" : "pill-neutral"}>D-{listing.dDay}</span>
+        <span className={listing.dDay <= 7 ? "pill-alert" : "pill-neutral"}>{formatDDay(listing.dDay)}</span>
         <span style={{ fontSize: 13, color: "var(--ink-faint)" }}>{listing.desc}</span>
       </div>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 24 }}>
@@ -59,7 +60,7 @@ export default function ListingDetail() {
         </div>
         <div className="info-row">
           <span className="k">신청기간</span>
-          <span className="v">마감 D-{listing.dDay}</span>
+          <span className="v">{isRolling(listing.dDay) ? "상시모집" : `마감 D-${listing.dDay}`}</span>
         </div>
         <div className="info-row">
           <span className="k">신청방법</span>

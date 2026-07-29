@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
+import { formatDDay } from "../utils/dday";
 
 export default function PickListingForBoard() {
   const { listings, region, regionLabel, bookmarks } = useOutletContext();
@@ -50,7 +51,7 @@ export default function PickListingForBoard() {
               <div className="desc">{l.desc}</div>
             </div>
             {bookmarks.includes(l.id) && <span className="pill-grade">북마크</span>}
-            <span className={l.dDay <= 7 ? "pill-alert" : "pill-neutral"}>D-{l.dDay}</span>
+            <span className={l.dDay <= 7 ? "pill-alert" : "pill-neutral"}>{formatDDay(l.dDay)}</span>
           </Link>
         ))}
         {activityListings.length === 0 && (

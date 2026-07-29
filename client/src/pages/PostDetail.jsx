@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { formatDDay } from "../utils/dday";
 
 export default function PostDetail() {
   const { postId } = useParams();
@@ -69,7 +70,7 @@ export default function PostDetail() {
       </p>
       <div className="detail-meta">
         <span className="cat">
-          {listing.title} · D-{post.dDay}
+          {listing.title} · {formatDDay(post.dDay)}
         </span>
       </div>
       <div className="board-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>

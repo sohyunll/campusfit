@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import { interestOptionsByCategory } from "../data/mockListings";
 import BookmarkStar from "../components/BookmarkStar";
+import { formatDDay } from "../utils/dday";
 
 const GRADE_GUIDE_CATEGORIES = ["activity", "internship"];
 const TEAM_RECRUIT_INTEREST = "팀원모집";
@@ -123,7 +124,7 @@ const totalCount = listings.filter((l) => l.categoryId === categoryId).length;
                 </div>
                 <div className="desc">{l.desc}</div>
               </div>
-              <span className={l.dDay <= 7 ? "pill-alert" : "pill-neutral"}>D-{l.dDay}</span>
+              <span className={l.dDay <= 7 ? "pill-alert" : "pill-neutral"}>{formatDDay(l.dDay)}</span>
               <BookmarkStar
                 active={bookmarks.includes(l.id)}
                 onClick={(e) => {
