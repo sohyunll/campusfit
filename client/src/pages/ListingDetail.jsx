@@ -75,6 +75,10 @@ export default function ListingDetail() {
           공식 페이지에서 지원하기 ↗
         </a>
       )}
+      <p style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-soft)", margin: "10px 0 0" }}>
+        마감일은 공공데이터 기준이라 기관 사정으로 조기 마감됐을 수 있어요. 지원 전에 공식
+        페이지에서 한 번 더 확인해주세요.
+      </p>
       {(listing.teamBoardCount > 0 || listing.categoryId === "activity") && (
         <Link className="btn-team" to={`/board/listing/${listing.id}`}>
           팀원 모집하기
