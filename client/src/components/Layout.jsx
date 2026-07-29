@@ -186,7 +186,7 @@ useEffect(() => {
           </nav>
           <div className="filter-wrap">
             <button className="filter-btn" onClick={() => setIsFilterOpen(!isFilterOpen)}>
-              {regionLabel} · {gradeLabel}
+              {region === "all" && grade === "all" ? "지역 · 학년" : `${regionLabel} · ${gradeLabel}`}
               <span className="chev">▾</span>
             </button>
             {isFilterOpen && (
