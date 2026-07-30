@@ -3,7 +3,7 @@
 const ROLLING_THRESHOLD = 365;
 
 export function isRolling(dDay) {
-  return dDay > ROLLING_THRESHOLD;
+  return dDay == null || Number.isNaN(dDay) || dDay > ROLLING_THRESHOLD;
 }
 
 export function formatDDay(dDay) {
